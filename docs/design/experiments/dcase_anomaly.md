@@ -20,3 +20,14 @@
 ```bash
 docker compose run --rm app uv run --with matplotlib python scripts/analysis/mahalanobis_distribution.py --dim 768
 ```
+
+## モデル切り替え・設定継承
+- モデル設定の `backend`（`embeddinggemma2` / `beats`）で埋め込みモデルを選ぶ
+- 設定ファイルは `base: <path>` で他の設定を継承し差分だけ書ける（`egaudio.config.loader`）。BEATs 用は `configs/experiment/dcase_beats/*.yaml`
+
+```bash
+docker compose run --rm app uv run python scripts/experiments/run_dcase_anomaly.py --config configs/experiment/dcase_beats/beats_iter3.yaml
+```
+
+## モデル間比較
+`scripts/analysis/compare_models.py`（設定 `configs/analysis/model_comparison.yaml`）: 各モデルの最良条件と固定条件（whole / 768 / single / マハラノビス）を公式ベースラインと並べて `outputs/analysis/model_comparison/` に出力。
