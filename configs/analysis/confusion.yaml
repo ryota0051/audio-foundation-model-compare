@@ -9,7 +9,8 @@ esc50:
   knn_k: 1
   # k-NN の混同行列を描くモデル（esc50_retrieval.yaml の models のキー）
   knn_models: [EmbeddingGemma2, BEATs_iter3, BEATs_iter3+AS2M_FT]
-  # ESC-50 の大分類（target // 10 に対応）
+  # ESC-50 の大分類の表示名。出典は ESC-50 公式 README の表で、列順に並べる
+  # （target 番号が大分類ごとに 10 個ずつ連番なので target // 10 で対応づく。詳細: docs/design/evaluation/confusion.md）
   category_groups:
     - Animals
     - Natural / water

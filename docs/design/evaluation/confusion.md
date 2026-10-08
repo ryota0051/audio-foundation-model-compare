@@ -30,3 +30,9 @@ docker compose run --rm app uv run python scripts/analysis/confusion_figures.py
 - ESC-50（各クラス 40 本・各大分類 400 本）も DCASE（各ドメイン 正常 50 / 異常 50）もクラスが均衡しており、行正規化しても情報は同じ。件数のほうが母数（1 本 = 2.5% など）が伝わる
 - ゼロショットの「予測の集中」は列方向の現象で、行正規化の % では見えないため、予測合計を併記する
 - クラス別再現率の図（`esc50_per_class_recall.png`）は再現率そのものの比較なので % のまま
+
+## ESC-50 の大分類の決め方
+- **出典**: ESC-50 公式 README（`data/ESC-50/README.md`, https://github.com/karolpiczak/ESC-50）の 5 大分類 × 各 10 クラスの表。クラスと大分類の対応は README を正とし、本リポジトリには書き写さない
+- **割り当て規則**: メタデータ（`esc50.csv`）に大分類の列はないが、`target` 番号が README の表と同じ順（大分類ごとに 10 個ずつ連番）で振られているため、`target // (クラス数 / 大分類数)` で割り当てる（`scripts/analysis/confusion_figures.py`）
+- **表示名**: `configs/analysis/confusion.yaml` の `esc50.category_groups`（README の表の列順に並べる）
+- **前提**: 「番号が大分類ごとに連番」は ESC-50 固有。別データセットに流用する場合は対応表を明示的に持つ必要がある
