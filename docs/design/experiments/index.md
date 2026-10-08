@@ -2,6 +2,7 @@
 
 - [esc50_zeroshot.md](esc50_zeroshot.md): Step 1 ESC-50 ゼロショット分類
 - [esc50_zeroshot_gap.md](esc50_zeroshot_gap.md): Step 1c ESC-50 ゼロショットのモダリティギャップ補正
+- [esc50_dedup.md](esc50_dedup.md): Step 1d ESC-50 ゼロショットの学習データ重複除去再評価
 - [esc50_retrieval.md](esc50_retrieval.md): Step 1b ESC-50 音声⇔音声検索によるモデル比較
 - [dcase_anomaly.md](dcase_anomaly.md): Step 2 DCASE 異常検知
 
