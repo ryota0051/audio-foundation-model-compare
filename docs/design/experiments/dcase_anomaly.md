@@ -16,9 +16,9 @@
 - `comparison_best_vs_baseline.csv`: 最良条件と MAHALA / MSE の機種別比較
 
 ## 分析スクリプト
-`scripts/analysis/mahalanobis_distribution.py`: キャッシュ済み whole 埋め込みでマハラノビス距離（単一プール）の分布をヒストグラム化し、公式 AUC に加えてドメイン内 AUC（同ドメインの正常 vs 異常）とスコアでドメインを当てる AUC を出力（`outputs/analysis/mahalanobis_distribution/`）。matplotlib は依存に含めず `uv run --with matplotlib` で実行する。
+`scripts/analysis/mahalanobis_distribution.py`: キャッシュ済み whole 埋め込みでマハラノビス距離（単一プール）の分布をヒストグラム化し、公式 AUC に加えてドメイン内 AUC（同ドメインの正常 vs 異常）とスコアでドメインを当てる AUC を出力（`outputs/analysis/mahalanobis_distribution/`）。matplotlib は dev 依存。
 ```bash
-docker compose run --rm app uv run --with matplotlib python scripts/analysis/mahalanobis_distribution.py --dim 768
+docker compose run --rm app uv run python scripts/analysis/mahalanobis_distribution.py --dim 768
 ```
 
 ## モデル切り替え・設定継承

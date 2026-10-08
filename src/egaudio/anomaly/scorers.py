@@ -23,6 +23,13 @@ class KnnCosineScorer:
         k = min(self.k, self.bank.shape[0])
         return np.sort(dist, axis=1)[:, :k].mean(axis=1)
 
+    def score_loo(self) -> np.ndarray:
+        """バンク自身のスコアを、自分自身を除いた近傍で計算する（閾値決め用）。"""
+        dist = 1.0 - self.bank @ self.bank.T
+        np.fill_diagonal(dist, np.inf)
+        k = min(self.k, self.bank.shape[0] - 1)
+        return np.sort(dist, axis=1)[:, :k].mean(axis=1)
+
 
 class MahalanobisScorer:
     """マハラノビス距離。"""
