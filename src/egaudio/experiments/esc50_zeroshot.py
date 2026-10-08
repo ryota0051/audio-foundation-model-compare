@@ -46,12 +46,12 @@ def run(config_path: str | Path) -> pd.DataFrame:
     y = meta["target"].to_numpy()
     folds = meta["fold"].to_numpy()
 
-    from egaudio.embedding.model import AudioTextEmbedder
+    from egaudio.embedding.factory import build_audio_embedder
 
-    embedder = AudioTextEmbedder(model_cfg)
+    embedder = build_audio_embedder(model_cfg)
 
     def _embed_audio():
-        wavs = [load_audio(p, ds["target_sr"], ds["channel"]) for p in meta["path"]]
+        wavs = [load_audio(p, model_cfg["sample_rate"], ds["channel"]) for p in meta["path"]]
         return embedder.encode_audio(wavs)
 
     audio_key = _key(meta["filename"].tolist())

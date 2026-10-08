@@ -51,11 +51,12 @@ def aggregate_segments(seg_scores: np.ndarray, clip_index: np.ndarray, n_clips: 
 class _Embeddings:
     """機種ごとのクリップ／セグメント埋め込み（キャッシュ付き）。"""
 
-    def __init__(self, embedder, ds: dict, cache_dir: Path, seg_cfg: dict):
+    def __init__(self, embedder, ds: dict, cache_dir: Path, seg_cfg: dict, sample_rate: int):
         self.embedder, self.ds, self.cache_dir, self.seg_cfg = embedder, ds, cache_dir, seg_cfg
+        self.sr = sample_rate
 
     def _wavs(self, paths):
-        return [load_audio(p, self.ds["target_sr"], self.ds["channel"]) for p in paths]
+        return [load_audio(p, self.sr, self.ds["channel"]) for p in paths]
 
     def whole(self, machine: str, split: str, paths) -> np.ndarray:
         return cached_array(
@@ -65,7 +66,7 @@ class _Embeddings:
     def segments(self, machine: str, split: str, paths) -> tuple[np.ndarray, np.ndarray]:
         w, h = self.seg_cfg["window_sec"], self.seg_cfg["hop_sec"]
         tag = f"{split}_seg_w{w}_h{h}"
-        sr = self.ds["target_sr"]
+        sr = self.sr
 
         def _index():
             return np.concatenate(
@@ -147,7 +148,8 @@ def run(config_path: str | Path) -> pd.DataFrame:
 
     from egaudio.embedding.factory import build_audio_embedder
 
-    emb = _Embeddings(build_audio_embedder(model_cfg), ds, Path(exp["cache_dir"]), exp["segmentation"]["segment"])
+    emb = _Embeddings(build_audio_embedder(model_cfg), ds, Path(exp["cache_dir"]), exp["segmentation"]["segment"],
+                      model_cfg["sample_rate"])
     rows = []
     for m in machines:
         train, test = list_clips(ds["root"], m, "train"), list_clips(ds["root"], m, "test")

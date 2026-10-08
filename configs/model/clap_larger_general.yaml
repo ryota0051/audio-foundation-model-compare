@@ -1,0 +1,13 @@
+# CLAP (LAION, larger_clap_general): 音声⇔テキスト対照学習モデル
+backend: clap
+model_id: laion/larger_clap_general
+dtype: float32
+device: cuda
+# モデルの入力サンプリングレート（前処理でこの値にリサンプル）
+sample_rate: 48000
+# これを超える音声は決定的に窓分割して平均（プロセッサのランダム切り出しを避ける）
+max_seconds: 10
+batch_size:
+  text: 64
+  audio: 16
+full_dim: 512

@@ -45,3 +45,11 @@ def test_load_dcase_whole_truncates(tmp_path):
 def test_dcase_domain_labels():
     df = pd.DataFrame({"domain": ["source", "target", "source"], "is_anomaly": [0, 0, 1]})
     assert dcase_domain_labels(df).tolist() == ["source normal", "target normal", "anomaly"]
+
+
+def test_load_dcase_whole_full_dim(tmp_path):
+    (tmp_path / "fan").mkdir()
+    np.save(tmp_path / "fan" / "train_whole.npy", np.ones((2, 8), dtype=np.float32))
+    np.save(tmp_path / "fan" / "test_whole.npy", np.ones((3, 8), dtype=np.float32))
+    tr, te = load_dcase_whole(tmp_path, "fan", dim=None)
+    assert tr.shape == (2, 8) and te.shape == (3, 8)

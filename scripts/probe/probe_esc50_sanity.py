@@ -1,6 +1,5 @@
 """ESC-50 fold1 の精度が低い原因切り分け（dtype / バッチ / プロンプト）。"""
 
-import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer
 

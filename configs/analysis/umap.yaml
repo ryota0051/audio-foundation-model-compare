@@ -10,11 +10,13 @@ umap:
 
 esc50_umap:
   # 大分類ごとの small multiples を描くモデル（esc50_retrieval.yaml の models のキー）
-  models: [EmbeddingGemma2, BEATs_iter3, BEATs_iter3+AS2M_FT]
+  models: [EmbeddingGemma2, BEATs_iter3, BEATs_iter3+AS2M_FT, CLAP]
 
 dcase_umap:
   # 機種ごとに train + test の正常（source / target）と異常を描く
   models:
     EmbeddingGemma2: outputs/cache/dcase
     BEATs_iter3: outputs/cache/dcase_beats/beats_iter3
-  dim: 768
+    CLAP: outputs/cache/clap/dcase_anomaly
+  # 各モデルの全次元を使う（キャッシュは全次元で保存されている）
+  dim: null

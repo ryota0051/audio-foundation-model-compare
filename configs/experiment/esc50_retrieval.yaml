@@ -12,6 +12,7 @@ models:
   BEATs_iter3_L6: configs/model/beats_iter3_l6.yaml
   BEATs_iter3+AS2M: configs/model/beats_iter3_plus_as2m.yaml
   BEATs_iter3+AS2M_FT: configs/model/beats_iter3_plus_as2m_ft.yaml
+  CLAP: configs/model/clap_larger_general.yaml
 
 knn_k: [1, 5, 10]
 precision_k: [1, 5, 10]

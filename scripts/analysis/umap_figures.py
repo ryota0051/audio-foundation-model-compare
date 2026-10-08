@@ -8,7 +8,6 @@ UMAP は大域的な距離を保たないため、クラスタの有無・重な
 """
 
 import argparse
-import json
 from pathlib import Path
 
 import matplotlib
@@ -19,13 +18,15 @@ import numpy as np
 import pandas as pd
 import umap
 
-from egaudio.analysis.loaders import dcase_domain_labels, load_dcase_whole, load_esc50_retrieval_embeddings
+from egaudio.analysis.loaders import (
+    dcase_domain_labels,
+    load_dcase_whole,
+    load_esc50_retrieval_embeddings,
+    load_zeroshot_embeddings,
+)
 from egaudio.config.loader import load_yaml
 from egaudio.data.dcase import list_clips
 from egaudio.data.esc50 import label_text, load_meta
-from egaudio.embedding.mrl import truncate_and_normalize
-from egaudio.experiments.esc50_zeroshot import _key
-from egaudio.zeroshot.prompts import build_texts
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", default="configs/analysis/umap.yaml")
@@ -45,6 +46,23 @@ plt.rcParams.update({
 
 def embed_2d(x: np.ndarray) -> np.ndarray:
     return umap.UMAP(**cfg["umap"]).fit_transform(x)
+
+
+def _draw_audio_text(ax, title, a, t, xa, xt, cos):
+    ax.scatter(xa[:, 0], xa[:, 1], s=4, color=style["series"][0], alpha=0.6, linewidths=0,
+               label=f"audio clip ({len(a):,})")
+    ax.scatter(xt[:, 0], xt[:, 1], s=28, marker="D", color=style["series"][1], edgecolors=style["surface"],
+               linewidths=1.0, label=f"class text ({len(t)})")
+    pred_count = np.bincount((a @ t.T).argmax(axis=1), minlength=len(t))
+    clean(ax)
+    ax.legend(loc="upper left", frameon=False)
+    ax.set_title(title, loc="left", fontsize=11)
+    top = "\n".join(f"  {label_text(classes[i])}: {pred_count[i]}" for i in np.argsort(-pred_count)[:6])
+    ax.text(0.01, 0.01, "most-predicted texts in zero-shot\n(clips of 2,000; 40 per class expected)\n" + top,
+            transform=ax.transAxes, ha="left", va="bottom", fontsize=8, color=style["text_secondary"])
+    txt = "\n".join(f"{k}: {v:.3f}" for k, v in cos.items())
+    ax.text(0.99, 0.01, f"mean cosine similarity ({a.shape[1]}-d)\n" + txt, transform=ax.transAxes, ha="right",
+            va="bottom", fontsize=8, color=style["text_secondary"])
 
 
 def clean(ax):
@@ -92,44 +110,29 @@ fig.savefig(out / "esc50_umap_categories.png", dpi=130)
 plt.close(fig)
 
 # ---------------- ESC-50: 音声とテキストを同一空間に（EmbeddingGemma 2） ----------------
-zs = load_yaml(e["zeroshot_config"])
-best = json.loads((Path(zs["output_dir"]) / "best.json").read_text(encoding="utf-8"))
-texts = build_texts(classes, zs["templates"][best["template"]], zs["prefixes"][best["prefix"]], zs["natural_labels"])
-zc = Path(zs["cache_dir"])
-a = truncate_and_normalize(np.load(zc / f"audio_{_key(meta['filename'].tolist())}.npy"), 768)
-t = truncate_and_normalize(np.load(zc / f"text_{_key(texts)}.npy"), 768)
-xy = embed_2d(np.vstack([a, t]))
-xa, xt = xy[: len(a)], xy[len(a):]
-pd.DataFrame({"x": xy[:, 0], "y": xy[:, 1], "modality": ["audio"] * len(a) + ["text"] * len(t),
-              "label": list(meta["category"]) + classes}).to_csv(out / "esc50_umap_audio_text.csv", index=False)
-
-# 数値の裏付け: 音声-音声 / テキスト-テキスト / 音声-正解テキスト の平均コサイン類似度
-cos = {
-    "audio-audio (random pairs)": float(np.mean(np.sum(a * a[np.random.default_rng(0).permutation(len(a))], axis=1))),
-    "text-text (all pairs)": float((t @ t.T)[~np.eye(len(t), dtype=bool)].mean()),
-    "audio-text (correct class)": float(np.mean(np.sum(a * t[y], axis=1))),
-    "audio-text (all pairs)": float((a @ t.T).mean()),
-}
-pd.Series(cos).to_csv(out / "esc50_modality_cosine.csv", header=["mean_cosine"])
-
-fig, ax = plt.subplots(figsize=(8, 7))
-ax.scatter(xa[:, 0], xa[:, 1], s=4, color=style["series"][0], alpha=0.6, linewidths=0, label="audio clip (2,000)")
-ax.scatter(xt[:, 0], xt[:, 1], s=28, marker="D", color=style["series"][1], edgecolors=style["surface"],
-           linewidths=1.0, label="class text (50)")
-# テキスト 50 点は 1 か所に固まり個別ラベルが重なるため、点群に 1 つだけ注記し、予測集中の上位は表で示す
-pred_count = np.bincount((a @ t.T).argmax(axis=1), minlength=len(classes))
-ax.annotate("all 50 class texts", xt.mean(axis=0), xytext=(10, -14), textcoords="offset points",
-            fontsize=8, color=style["text_secondary"])
-clean(ax)
-ax.legend(loc="upper left", frameon=False)
-ax.set_title("EmbeddingGemma 2: audio and class-text embeddings in one UMAP (modality gap)", loc="left", fontsize=11)
-top = "\n".join(f"  {label_text(classes[i])}: {pred_count[i]}" for i in np.argsort(-pred_count)[:6])
-ax.text(0.01, 0.01, "most-predicted texts in zero-shot\n(clips of 2,000; 40 per class expected)\n" + top,
-        transform=ax.transAxes, ha="left", va="bottom", fontsize=8, color=style["text_secondary"])
-txt = "\n".join(f"{k}: {v:.3f}" for k, v in cos.items())
-ax.text(0.99, 0.01, "mean cosine similarity (768-d)\n" + txt, transform=ax.transAxes, ha="right", va="bottom",
-        fontsize=8, color=style["text_secondary"])
-fig.tight_layout()
+zs_models = e["zeroshot_configs"]
+fig, axes = plt.subplots(1, len(zs_models), figsize=(8 * len(zs_models), 7), squeeze=False)
+cos_rows = {}
+for ax, (zs_label, zs_path) in zip(axes[0], zs_models.items()):
+    a, t = load_zeroshot_embeddings(load_yaml(zs_path), meta["filename"].tolist(), classes)
+    xy = embed_2d(np.vstack([a, t]))
+    xa, xt = xy[: len(a)], xy[len(a):]
+    pd.DataFrame({"x": xy[:, 0], "y": xy[:, 1], "modality": ["audio"] * len(a) + ["text"] * len(t),
+                  "label": list(meta["category"]) + classes}).to_csv(
+        out / f"esc50_umap_audio_text_{zs_label}.csv", index=False)
+    # 数値の裏付け: 音声-音声 / テキスト-テキスト / 音声-正解テキスト の平均コサイン類似度
+    cos = {
+        "audio-audio (random pairs)": float(np.mean(np.sum(a * a[np.random.default_rng(0).permutation(len(a))], axis=1))),
+        "text-text (all pairs)": float((t @ t.T)[~np.eye(len(t), dtype=bool)].mean()),
+        "audio-text (correct class)": float(np.mean(np.sum(a * t[y], axis=1))),
+        "audio-text (all pairs)": float((a @ t.T).mean()),
+    }
+    cos_rows[zs_label] = cos
+    _draw_audio_text(ax, zs_label, a, t, xa, xt, cos)
+pd.DataFrame(cos_rows).to_csv(out / "esc50_modality_cosine.csv")
+fig.suptitle("Audio clips and class texts in one UMAP per model (zero-shot best template)", x=0.01, ha="left",
+             fontsize=12)
+fig.tight_layout(rect=(0, 0, 1, 0.95))
 fig.savefig(out / "esc50_umap_audio_text.png", dpi=130)
 plt.close(fig)
 
@@ -166,4 +169,4 @@ fig.suptitle("DCASE whole-clip embeddings (UMAP, cosine): train + test, per mach
 fig.tight_layout(rect=(0, 0, 1, 0.975))
 fig.savefig(out / "dcase_umap.png", dpi=130)
 plt.close(fig)
-print(pd.Series(cos).round(3).to_string())
+print(pd.DataFrame(cos_rows).round(3).to_string())

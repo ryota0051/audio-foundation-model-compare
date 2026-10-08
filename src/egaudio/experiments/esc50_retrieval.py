@@ -50,7 +50,7 @@ def run(config_path: str | Path) -> pd.DataFrame:
         model_cfg = load_yaml(model_config)
 
         def _embed(model_cfg=model_cfg):
-            wavs = [load_audio(p, ds["target_sr"], ds["channel"]) for p in meta["path"]]
+            wavs = [load_audio(p, model_cfg["sample_rate"], ds["channel"]) for p in meta["path"]]
             return build_audio_embedder(model_cfg).encode_audio(wavs)
 
         raw = cached_array(cache_dir / Path(model_config).stem / f"audio_n{len(meta)}.npy", _embed)

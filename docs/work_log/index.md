@@ -2,4 +2,4 @@
 
 | 日付 | 内容 |
 |---|---|
-| [2026-10-08](20261008.md) | 環境構築（Docker+uv）、Step1 ESC-50 ゼロショット（Top-1 最大 27.4%）、Step2 DCASE 異常検知（EmbeddingGemma2 0.522 < MAHALA 0.577）、スコア分布分析、BEATs 比較（iter3 0.584 で MAHALA 超え）、ESC-50 音声検索比較（EmbeddingGemma2 k-NN 70% / 線形プローブ 82%）、混同行列・UMAP、ゼロショットのギャップ補正（CSLS で 27.4 → 29.8%） |
+| [2026-10-08](20261008.md) | 環境構築（Docker+uv）、Step1 ESC-50 ゼロショット（Top-1 最大 27.4%）、Step2 DCASE 異常検知（EmbeddingGemma2 0.522 < MAHALA 0.577）、スコア分布分析、BEATs 比較（iter3 0.584 で MAHALA 超え）、ESC-50 音声検索比較（EmbeddingGemma2 k-NN 70% / 線形プローブ 82%）、混同行列・UMAP、ゼロショットのギャップ補正（CSLS で 27.4 → 29.8%）、CLAP 比較（ゼロショット 95.1% / DCASE 0.561） |

@@ -7,3 +7,4 @@
 | [0003](0003-evaluation-metrics.md) | 評価指標の実装方針 | 公式 evaluator を移植し自前で計算 |
 | [0004](0004-audio-resampling-before-model.md) | モデル投入前に自前で 16kHz 化 | プロセッサはリサンプルしない |
 | [0005](0005-beats-vendoring-and-checkpoints.md) | BEATs の取り込みとチェックポイントの扱い | 公式実装を vendoring、チェックポイントは手動配置 |
+| [0006](0006-clap-comparison.md) | CLAP を比較対象に追加 | larger_clap_general のみ、48kHz、決定的窓分割、ESC-50 重複の注意 |

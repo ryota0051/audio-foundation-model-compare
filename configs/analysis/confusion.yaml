@@ -3,12 +3,16 @@ output_dir: outputs/analysis/confusion
 
 esc50:
   dataset_config: configs/dataset/esc50.yaml
-  # ゼロショットは Step1 の最良条件（best.json）を使う
-  zeroshot_config: configs/experiment/esc50_zeroshot.yaml
+  # ゼロショット: 表示名 -> 実験設定（各設定の best.json の条件を使う）
+  zeroshot_configs:
+    EmbeddingGemma2: configs/experiment/esc50_zeroshot.yaml
+    CLAP: configs/experiment/clap/esc50_zeroshot.yaml
   retrieval_config: configs/experiment/esc50_retrieval.yaml
   knn_k: 1
   # k-NN の混同行列を描くモデル（esc50_retrieval.yaml の models のキー）
-  knn_models: [EmbeddingGemma2, BEATs_iter3, BEATs_iter3+AS2M_FT]
+  knn_models: [EmbeddingGemma2, BEATs_iter3, BEATs_iter3+AS2M_FT, CLAP]
+  # クラス別再現率の図で比べる条件（散布図の判別可能色は 3 まで）
+  recall_compare: [EmbeddingGemma2 zero-shot, CLAP zero-shot, EmbeddingGemma2 k-NN@1]
   # ESC-50 の大分類の表示名。出典は ESC-50 公式 README の表で、列順に並べる
   # （target 番号が大分類ごとに 10 個ずつ連番なので target // 10 で対応づく。詳細: docs/design/evaluation/confusion.md）
   category_groups:

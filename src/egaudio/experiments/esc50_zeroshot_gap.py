@@ -6,7 +6,6 @@ Top-k 正解率と予測の偏りを測る。埋め込みは Step 1 のキャッ
 
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from egaudio.audio.preprocess import load_audio
@@ -42,19 +41,20 @@ def run(config_path: str | Path) -> pd.DataFrame:
     classes = meta.drop_duplicates("target").sort_values("target")["category"].tolist()
     y, folds = meta["target"].to_numpy(), meta["fold"].to_numpy()
 
+    model_cfg = load_yaml(exp["model_config"])
     embedder = None
 
     def _embedder():
         nonlocal embedder
         if embedder is None:
-            from egaudio.embedding.model import AudioTextEmbedder
+            from egaudio.embedding.factory import build_audio_embedder
 
-            embedder = AudioTextEmbedder(load_yaml(exp["model_config"]))
+            embedder = build_audio_embedder(model_cfg)
         return embedder
 
     audio = cached_array(
         cache_dir / f"audio_{_key(meta['filename'].tolist())}.npy",
-        lambda: _embedder().encode_audio([load_audio(p, ds["target_sr"], ds["channel"]) for p in meta["path"]]),
+        lambda: _embedder().encode_audio([load_audio(p, model_cfg["sample_rate"], ds["channel"]) for p in meta["path"]]),
     )
 
     rows = []
