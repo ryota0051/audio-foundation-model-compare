@@ -58,6 +58,33 @@ def ink_for(value: float) -> str:
     return style["surface"] if 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.5 else style["text_primary"]
 
 
+def draw_counts(ax, cm: np.ndarray, vmax: float, fontsize: float, min_label: int = 0,
+                emphasize_over: float | None = None):
+    """件数の混同行列を描く。色 = 件数（0〜vmax）、行合計は右軸・列合計は上軸に表示。
+
+    件数が min_label 以上のセルだけ数字を書き込む（0 なら全セル）。列合計が emphasize_over 以上なら太字にする。
+    """
+    im = ax.imshow(cm, cmap=CMAP, vmin=0, vmax=vmax)
+    k = cm.shape[0]
+    for i in range(k):
+        for j in range(k):
+            if cm[i, j] >= min_label:
+                ax.text(j, i, f"{cm[i, j]}", ha="center", va="center", fontsize=fontsize,
+                        color=ink_for(cm[i, j] / vmax))
+    top = ax.secondary_xaxis("top")
+    top.set_xticks(range(k), [str(v) for v in cm.sum(axis=0)], fontsize=fontsize)
+    top.tick_params(length=0, colors=style["text_secondary"])
+    if emphasize_over is not None:
+        for lbl, v in zip(top.get_xticklabels(), cm.sum(axis=0)):
+            if v >= emphasize_over:
+                lbl.set_fontweight("bold")
+                lbl.set_color(style["text_primary"])
+    right = ax.secondary_yaxis("right")
+    right.set_yticks(range(k), [str(v) for v in cm.sum(axis=1)], fontsize=fontsize)
+    right.tick_params(length=0, colors=style["text_secondary"])
+    return im, top, right
+
+
 # ---------------- ESC-50 ----------------
 e = cfg["esc50"]
 ds = load_yaml(e["dataset_config"])
@@ -93,8 +120,11 @@ for name, p in preds.items():
     fname = name.replace(" ", "_").replace("+", "plus").replace("@", "")
     cm = confusion_matrix(y, p, n)
     pd.DataFrame(cm, index=classes, columns=classes).to_csv(out / f"esc50_cm_{fname}.csv")
-    fig, ax = plt.subplots(figsize=(11, 10))
-    im = ax.imshow(row_normalize(cm), cmap=CMAP, vmin=0, vmax=1)
+    per_class = int(cm.sum(axis=1).max())
+    fig, ax = plt.subplots(figsize=(12, 11))
+    im, top, right = draw_counts(ax, cm, vmax=per_class, fontsize=5.5, min_label=1, emphasize_over=2 * per_class)
+    top.set_xlabel(f"Predicted total (bold = at least {2 * per_class}, twice the class size)", fontsize=8)
+    right.set_ylabel("True total", fontsize=8)
     for b in boundaries:
         ax.axhline(b, color=style["muted"], linewidth=0.8)
         ax.axvline(b, color=style["muted"], linewidth=0.8)
@@ -102,9 +132,10 @@ for name, p in preds.items():
     ax.set_yticks(range(n), classes, fontsize=7)
     ax.set_xlabel("Predicted")
     ax.set_ylabel("True")
-    ax.set_title(f"ESC-50  {name}   accuracy {np.mean(p == y):.1%}", loc="left", fontsize=12)
-    cb = fig.colorbar(im, ax=ax, fraction=0.03, pad=0.01)
-    cb.set_label("Share of true-class clips (row-normalized)")
+    ax.set_title(f"ESC-50  {name}   accuracy {np.mean(p == y):.1%} ({int((p == y).sum())}/{len(y)} clips)",
+                 loc="left", fontsize=12, pad=34)
+    cb = fig.colorbar(im, ax=ax, fraction=0.03, pad=0.06)
+    cb.set_label("Clips (count)")
     cb.outline.set_visible(False)
     fig.tight_layout()
     fig.savefig(out / f"esc50_cm_{fname}.png", dpi=130)
@@ -113,22 +144,25 @@ for name, p in preds.items():
 # 大分類の混同行列（small multiples）
 names = list(preds)
 G = len(e["category_groups"])
-fig, axes = plt.subplots(1, len(names), figsize=(4.2 * len(names), 4.6))
+fig, axes = plt.subplots(1, len(names), figsize=(4.6 * len(names), 6.0))
 rows = []
 for ax, name in zip(axes, names):
-    g = row_normalize(group_confusion(confusion_matrix(y, preds[name], n), groups, G))
-    ax.imshow(g, cmap=CMAP, vmin=0, vmax=1)
+    g = group_confusion(confusion_matrix(y, preds[name], n), groups, G)
+    per_group = int(g.sum(axis=1).max())
+    _, top, right = draw_counts(ax, g, vmax=per_group, fontsize=8)
     for i in range(G):
         for j in range(G):
-            ax.text(j, i, f"{g[i, j]:.0%}", ha="center", va="center", fontsize=8, color=ink_for(g[i, j]))
-            rows.append({"condition": name, "true": e["category_groups"][i], "pred": e["category_groups"][j], "share": g[i, j]})
+            rows.append({"condition": name, "true": e["category_groups"][i], "pred": e["category_groups"][j],
+                         "count": int(g[i, j])})
     ax.set_xticks(range(G), e["category_groups"], rotation=45, ha="right")
     ax.set_yticks(range(G), e["category_groups"] if ax is axes[0] else [""] * G)
-    ax.set_title(name, fontsize=10, loc="left")
+    ax.set_title(name, fontsize=10, loc="left", pad=34)
     ax.set_xlabel("Predicted category")
+    top.set_xlabel("Predicted total", fontsize=7)
 axes[0].set_ylabel("True category")
-fig.suptitle("ESC-50 confusion by major category (row-normalized)", x=0.01, ha="left", fontsize=12)
-fig.tight_layout()
+fig.suptitle(f"ESC-50 confusion by major category: clip counts ({per_group} clips per category; "
+             "row totals on the right, predicted totals on top)", x=0.01, ha="left", fontsize=11)
+fig.tight_layout(rect=(0, 0, 1, 0.92))
 fig.savefig(out / "esc50_category_cm.png", dpi=130)
 plt.close(fig)
 pd.DataFrame(rows).to_csv(out / "esc50_category_cm.csv", index=False)
@@ -180,12 +214,13 @@ for r, m in enumerate(machines):
             rep = binary_report(y_t[sel], s[sel], thr)
             reports.append({"model": label, "machine": m, "domain": domain, "threshold": thr, **rep})
             mat = np.array([[rep["tn"], rep["fp"]], [rep["fn"], rep["tp"]]])
-            share = row_normalize(mat)
             ax = axes[r, 2 * mi + di]
-            ax.imshow(share, cmap=CMAP, vmin=0, vmax=1)
+            vmax = int(mat.sum(axis=1).max())
+            ax.imshow(mat, cmap=CMAP, vmin=0, vmax=vmax)
             for i in range(2):
                 for j in range(2):
-                    ax.text(j, i, f"{mat[i, j]}", ha="center", va="center", fontsize=10, color=ink_for(share[i, j]))
+                    ax.text(j, i, f"{mat[i, j]}", ha="center", va="center", fontsize=10,
+                            color=ink_for(mat[i, j] / vmax))
             ax.set_xticks([0, 1], ["normal", "anomaly"] if r == len(machines) - 1 else ["", ""])
             ax.set_yticks([0, 1], ["normal", "anomaly"] if 2 * mi + di == 0 else ["", ""])
             if r == 0:
@@ -194,7 +229,7 @@ for r, m in enumerate(machines):
                 ax.set_ylabel(f"{m}\ntrue", fontsize=9)
             ax.set_xlabel(f"F1 {rep['f1']:.2f}", fontsize=8)
 fig.suptitle(
-    "DCASE thresholded decisions (rows = true, columns = predicted)\n"
+    "DCASE thresholded decisions, clip counts (rows = true, columns = predicted; 50 clips per row)\n"
     f"threshold: {d['threshold_quantile']:.0%} quantile of train-normal LOO scores · whole / k-NN k={d['knn_k']} / dim {d['dim']}",
     x=0.01, ha="left", fontsize=10,
 )
@@ -204,4 +239,4 @@ plt.close(fig)
 rep_df = pd.DataFrame(reports)
 rep_df.to_csv(out / "dcase_binary_report.csv", index=False)
 print(rep_df.groupby(["model", "domain"])[["precision", "recall", "f1"]].mean().round(3).to_string())
-print(pd.DataFrame(rows).query("true == pred").pivot(index="true", columns="condition", values="share").round(3).to_string())
+print(pd.DataFrame(rows).query("true == pred").pivot(index="true", columns="condition", values="count").round(3).to_string())
