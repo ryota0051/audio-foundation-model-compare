@@ -1,0 +1,30 @@
+model_config: configs/model/embeddinggemma2.yaml
+dataset_config: configs/dataset/dcase.yaml
+baseline_config: configs/experiment/dcase_baseline_scores.yaml
+output_dir: outputs/smoke/dcase
+cache_dir: outputs/smoke_cache/dcase
+# smoke 実行時は機種を絞る（null = dataset_config の全機種）
+machines: [fan]
+
+dims: [768, 256]
+max_fpr: 0.1
+
+scorers:
+  knn_k: [1, 5, 10]
+  mahalanobis: true
+  # 縮約共分散の推定法: ledoit_wolf / empirical
+  covariance: ledoit_wolf
+
+# single: 正常音を1プール / domain_min: source・target 別プールで近い方
+pooling: [single, domain_min]
+
+# クリップ全体 vs 分割
+segmentation:
+  whole:
+    enabled: true
+  segment:
+    enabled: true
+    window_sec: 2.0
+    hop_sec: 1.0
+    # セグメントスコアの集約: max / mean
+    aggregations: [max, mean]
