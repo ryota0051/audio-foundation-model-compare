@@ -15,6 +15,7 @@ services:
       - ./data:/workspace/data:ro
       - ./outputs:/workspace/outputs
       - ./.hf_cache:/workspace/.hf_cache
+      - ./models:/workspace/models:ro
     shm_size: "8gb"
     deploy:
       resources:

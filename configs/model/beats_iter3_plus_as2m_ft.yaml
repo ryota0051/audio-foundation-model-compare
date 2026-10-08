@@ -1,0 +1,11 @@
+# BEATs: AudioSet-2M ファインチューニング済み (cpt2)・分類ヘッド手前の最終層
+backend: beats
+checkpoint: models/beats/BEATs_iter3_plus_AS2M_finetuned_on_AS2M_cpt2.pt
+# 1 始まりの層番号（null = 最終層）。出力は時間方向平均
+layer: null
+dtype: float32
+device: cuda
+sample_rate: 16000
+batch_size:
+  audio: 32
+full_dim: 768

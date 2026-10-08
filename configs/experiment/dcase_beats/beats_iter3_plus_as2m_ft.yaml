@@ -1,0 +1,7 @@
+# DCASE 異常検知を BEATs (AudioSet-2M ファインチューニング済み (cpt2)・分類ヘッド手前の最終層) で実行
+base: configs/experiment/dcase_anomaly.yaml
+model_config: configs/model/beats_iter3_plus_as2m_ft.yaml
+output_dir: outputs/results/dcase_beats/beats_iter3_plus_as2m_ft
+cache_dir: outputs/cache/dcase_beats/beats_iter3_plus_as2m_ft
+# BEATs は MRL 学習されていないので次元切り詰めはしない
+dims: [768]

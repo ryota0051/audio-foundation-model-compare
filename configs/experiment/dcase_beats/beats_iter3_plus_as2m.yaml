@@ -1,0 +1,7 @@
+# DCASE 異常検知を BEATs (自己教師あり（トークナイザが AS2M ラベル付きモデル由来）・最終層) で実行
+base: configs/experiment/dcase_anomaly.yaml
+model_config: configs/model/beats_iter3_plus_as2m.yaml
+output_dir: outputs/results/dcase_beats/beats_iter3_plus_as2m
+cache_dir: outputs/cache/dcase_beats/beats_iter3_plus_as2m
+# BEATs は MRL 学習されていないので次元切り詰めはしない
+dims: [768]
