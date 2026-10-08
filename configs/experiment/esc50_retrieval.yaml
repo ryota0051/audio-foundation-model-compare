@@ -1,0 +1,21 @@
+# ESC-50 音声⇔音声検索による埋め込み比較（5 分割交差検証）
+dataset_config: configs/dataset/esc50.yaml
+output_dir: outputs/results/esc50_retrieval
+cache_dir: outputs/cache/esc50_retrieval
+# null = 全 fold
+folds: null
+
+# 表示名: モデル設定
+models:
+  EmbeddingGemma2: configs/model/embeddinggemma2.yaml
+  BEATs_iter3: configs/model/beats_iter3.yaml
+  BEATs_iter3_L6: configs/model/beats_iter3_l6.yaml
+  BEATs_iter3+AS2M: configs/model/beats_iter3_plus_as2m.yaml
+  BEATs_iter3+AS2M_FT: configs/model/beats_iter3_plus_as2m_ft.yaml
+
+knn_k: [1, 5, 10]
+precision_k: [1, 5, 10]
+linear_probe:
+  enabled: true
+  c: 1.0
+  max_iter: 2000
