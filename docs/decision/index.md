@@ -6,3 +6,4 @@
 | [0002](0002-dcase-channel-and-domain-pooling.md) | DCASE の入力チャンネルとドメイン別プール | ch1 のみ、source/target 別プールの扱い |
 | [0003](0003-evaluation-metrics.md) | 評価指標の実装方針 | 公式 evaluator を移植し自前で計算 |
 | [0004](0004-audio-resampling-before-model.md) | モデル投入前に自前で 16kHz 化 | プロセッサはリサンプルしない |
+| [0005](0005-beats-vendoring-and-checkpoints.md) | BEATs の取り込みとチェックポイントの扱い | 公式実装を vendoring、チェックポイントは手動配置 |

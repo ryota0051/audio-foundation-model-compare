@@ -1,0 +1,16 @@
+# モデル間比較（scripts/analysis/compare_models.py）
+baseline_config: configs/experiment/dcase_baseline_scores.yaml
+output_dir: outputs/analysis/model_comparison
+# ラベル: 結果ディレクトリ（per_machine.csv / summary.csv を含む）
+models:
+  EmbeddingGemma2: outputs/results/dcase
+  BEATs_iter3: outputs/results/dcase_beats/beats_iter3
+  BEATs_iter3_L6: outputs/results/dcase_beats/beats_iter3_l6
+  BEATs_iter3+AS2M: outputs/results/dcase_beats/beats_iter3_plus_as2m
+  BEATs_iter3+AS2M_FT: outputs/results/dcase_beats/beats_iter3_plus_as2m_ft
+# 全モデル共通の固定条件（条件選択の有利不利を除いた比較用）
+fixed_condition:
+  mode: whole
+  dim: 768
+  pooling: single
+  scorer: mahalanobis

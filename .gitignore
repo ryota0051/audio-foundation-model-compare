@@ -223,3 +223,6 @@ __marimo__/
 /data/
 /outputs/
 /.hf_cache/
+
+# モデルチェックポイント
+/models/

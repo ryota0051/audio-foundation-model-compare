@@ -1,4 +1,5 @@
 # EmbeddingGemma 2（テキスト＋音声のみロード）
+backend: embeddinggemma2
 model_id: google/embeddinggemma-2
 # bfloat16 / float32 のみ許可（float16 は NaN・劣化のため禁止）
 dtype: bfloat16

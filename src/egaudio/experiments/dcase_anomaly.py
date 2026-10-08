@@ -145,9 +145,9 @@ def run(config_path: str | Path) -> pd.DataFrame:
     out_dir = Path(exp["output_dir"])
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    from egaudio.embedding.model import AudioTextEmbedder
+    from egaudio.embedding.factory import build_audio_embedder
 
-    emb = _Embeddings(AudioTextEmbedder(model_cfg), ds, Path(exp["cache_dir"]), exp["segmentation"]["segment"])
+    emb = _Embeddings(build_audio_embedder(model_cfg), ds, Path(exp["cache_dir"]), exp["segmentation"]["segment"])
     rows = []
     for m in machines:
         train, test = list_clips(ds["root"], m, "train"), list_clips(ds["root"], m, "test")

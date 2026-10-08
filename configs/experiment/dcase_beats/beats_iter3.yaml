@@ -1,0 +1,7 @@
+# DCASE 異常検知を BEATs (自己教師ありのみ（ラベル不使用）・最終層) で実行
+base: configs/experiment/dcase_anomaly.yaml
+model_config: configs/model/beats_iter3.yaml
+output_dir: outputs/results/dcase_beats/beats_iter3
+cache_dir: outputs/cache/dcase_beats/beats_iter3
+# BEATs は MRL 学習されていないので次元切り詰めはしない
+dims: [768]
