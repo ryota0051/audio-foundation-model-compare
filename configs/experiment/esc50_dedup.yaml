@@ -1,0 +1,29 @@
+# ESC-50 ゼロショットの学習データ重複を除いた再評価
+dataset_config: configs/dataset/esc50.yaml
+output_dir: outputs/results/esc50_dedup
+
+# LAION-Audio-630K Freesound のメタデータ（Hugging Face: Meranti/CLAP_freesound, 研究目的に限り利用可）
+# 手動で data/laion_freesound_meta/ に配置（git 管理外）
+overlap_sources:
+  freesound_full: data/laion_freesound_meta/freesound_meta.csv
+  freesound_no_overlap: data/laion_freesound_meta/freesound_no_overlap_meta.csv
+# 汚染判定に使う集合（どちらの版で学習されていても汚染のない clean を得るため完全版を使う）
+contamination_source: freesound_full
+
+# モデル: Step 1 のゼロショット設定（キャッシュを再利用）
+models:
+  EmbeddingGemma2: configs/experiment/esc50_zeroshot.yaml
+  CLAP: configs/experiment/clap/esc50_zeroshot.yaml
+# 評価する [prefix, template]（各モデルの最良と、CLAP 公式の書式 clap_label）
+conditions:
+  EmbeddingGemma2:
+    - [search, natural]
+    - [none, clap_label]
+  CLAP:
+    - [none, clap_natural]
+    - [none, clap_label]
+
+# クラス内比較（overlap - clean）の 95% 区間を求めるブートストラップ
+bootstrap:
+  n: 2000
+  seed: 0

@@ -15,3 +15,5 @@ BEATs はテキスト非対応のため、EmbeddingGemma 2 のゼロショット
 
 ## 注意（ESC-50 の学習データ重複）
 LAION-CLAP 論文（arXiv:2211.06687）は、学習データとゼロショット評価セットの重複に気付き、**評価セット側から重複サンプルを除いて**評価したと記載（ESC-50 は FSD50K-train と 399 件、Clotho-train と 94 件の重複を報告。報告ゼロショット精度 89.1%）。学習データ（LAION-Audio-630K の Freesound 約 51.5 万件）からは除かれていない。本リポジトリは ESC-50 全 2,000 本で評価しており、`larger_clap_general` はその後さらにデータを増やしたモデルのため、**ESC-50 の CLAP の値は学習時に見たクリップを含む可能性があり、楽観的な上限として扱う**。EmbeddingGemma 2 は学習データが非公開のため同様の確認はできない。
+
+**追記（再評価の結果）**: LAION-Audio-630K Freesound の ID と照合した結果は Step 1d（`docs/design/experiments/esc50_dedup.md`、作業ログ 2026-10-08）。重複しないクリップでも CLAP は 91% 台で、クラス内比較でも重複による一貫した底上げは確認されなかった。

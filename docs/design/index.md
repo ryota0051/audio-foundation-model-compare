@@ -2,6 +2,7 @@
 
 | ドメイン | 内容 |
 |---|---|
+| [data](data/index.md) | メタデータ読み出しと外部学習データとの重複判定 |
 | [audio](audio/index.md) | 音声の読み込み・チャンネル選択・リサンプル・分割 |
 | [embedding](embedding/index.md) | EmbeddingGemma 2 ラッパ・MRL 切り詰め・キャッシュ |
 | [zeroshot](zeroshot/index.md) | テキストラベルによるゼロショット分類 |
