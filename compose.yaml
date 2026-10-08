@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: egaudio:latest
+    working_dir: /workspace
+    environment:
+      - HF_TOKEN=${HF_TOKEN:-}
+    volumes:
+      - ./src:/workspace/src
+      - ./tests:/workspace/tests
+      - ./scripts:/workspace/scripts
+      - ./configs:/workspace/configs
+      - ./data:/workspace/data:ro
+      - ./outputs:/workspace/outputs
+      - ./.hf_cache:/workspace/.hf_cache
+    shm_size: "8gb"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

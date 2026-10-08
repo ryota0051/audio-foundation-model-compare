@@ -1,0 +1,6 @@
+data/
+outputs/
+.hf_cache/
+.venv/
+.git/
+**/__pycache__/
