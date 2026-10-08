@@ -19,6 +19,9 @@ templates:
   label: "{label}"
   sound_of: "the sound of {label}"
   natural: "the sound of {natural}"
+  # CLAP 論文の標準書式（モデル間でテンプレート条件を揃えるため共通に評価）
+  clap_label: "This is a sound of {label}."
+  clap_natural: "This is a sound of {natural}."
 
 natural_labels:
   dog: a dog barking

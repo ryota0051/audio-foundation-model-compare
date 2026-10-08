@@ -1,5 +1,4 @@
 root: data/DCASE
-target_sr: 16000
 # ch1（機械に近いマイク）のみ使用。0始まりインデックス
 channel: 0
 machines:

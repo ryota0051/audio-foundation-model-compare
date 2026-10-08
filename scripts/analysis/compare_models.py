@@ -26,7 +26,9 @@ for label, d in cfg["models"].items():
         continue
     summary = pd.read_csv(d / "summary.csv")
     per = pd.read_csv(d / "per_machine.csv")
-    fixed = cfg["fixed_condition"]
+    fixed = dict(cfg["fixed_condition"])
+    if fixed["dim"] == "full":
+        fixed["dim"] = int(summary["dim"].max())
     picks = {"best": summary.iloc[0][KEYS].to_dict(), "fixed": fixed}
     for kind, cond in picks.items():
         sel = (per[KEYS] == pd.Series(cond)[KEYS]).all(axis=1)

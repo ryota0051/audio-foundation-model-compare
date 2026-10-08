@@ -11,4 +11,8 @@ def build_audio_embedder(cfg: dict):
         from egaudio.embedding.beats import BeatsEmbedder
 
         return BeatsEmbedder(cfg)
+    if backend == "clap":
+        from egaudio.embedding.clap import ClapEmbedder
+
+        return ClapEmbedder(cfg)
     raise ValueError(f"unknown backend: {backend}")

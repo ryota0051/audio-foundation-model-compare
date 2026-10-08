@@ -1,0 +1,6 @@
+# DCASE 異常検知（CLAP larger_clap_general）
+base: configs/experiment/dcase_anomaly.yaml
+model_config: configs/model/clap_larger_general.yaml
+output_dir: outputs/results/clap/dcase_anomaly
+cache_dir: outputs/cache/clap/dcase_anomaly
+dims: [512]

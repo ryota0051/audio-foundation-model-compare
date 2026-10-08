@@ -1,6 +1,7 @@
 """YAML 設定ファイルの読み込み。
 
 `base: <path>` を書くと、そのファイルを読み込んだ上で自身の値を深くマージする（パスはリポジトリルート基準）。
+辞書に `_replace: true` を書くと、その辞書はマージせず丸ごと置き換える。
 """
 
 from pathlib import Path
@@ -12,7 +13,9 @@ import yaml
 def deep_merge(base: dict, override: dict) -> dict:
     out = dict(base)
     for k, v in override.items():
-        if isinstance(v, dict) and isinstance(out.get(k), dict):
+        if isinstance(v, dict) and v.get("_replace"):
+            out[k] = {kk: vv for kk, vv in v.items() if kk != "_replace"}
+        elif isinstance(v, dict) and isinstance(out.get(k), dict):
             out[k] = deep_merge(out[k], v)
         else:
             out[k] = v

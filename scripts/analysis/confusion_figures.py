@@ -8,7 +8,6 @@
 """
 
 import argparse
-import json
 from pathlib import Path
 
 import matplotlib
@@ -19,12 +18,11 @@ import numpy as np
 import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap, to_rgb
 
-from egaudio.analysis.loaders import load_dcase_whole, load_esc50_retrieval_embeddings
+from egaudio.analysis.loaders import load_dcase_whole, load_esc50_retrieval_embeddings, load_zeroshot_embeddings
 from egaudio.anomaly.scorers import KnnCosineScorer
 from egaudio.config.loader import load_yaml
 from egaudio.data.dcase import list_clips
 from egaudio.data.esc50 import load_meta
-from egaudio.embedding.mrl import truncate_and_normalize
 from egaudio.evaluation.confusion import (
     binary_report,
     confusion_matrix,
@@ -32,9 +30,7 @@ from egaudio.evaluation.confusion import (
     row_normalize,
     threshold_from_normal,
 )
-from egaudio.experiments.esc50_zeroshot import _key
 from egaudio.retrieval.knn import knn_predict
-from egaudio.zeroshot.prompts import build_texts
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", default="configs/analysis/confusion.yaml")
@@ -97,13 +93,9 @@ groups = np.arange(n) // (n // len(e["category_groups"]))
 
 preds: dict[str, np.ndarray] = {}
 
-zs = load_yaml(e["zeroshot_config"])
-best = json.loads((Path(zs["output_dir"]) / "best.json").read_text(encoding="utf-8"))
-texts = build_texts(classes, zs["templates"][best["template"]], zs["prefixes"][best["prefix"]], zs["natural_labels"])
-zs_cache = Path(zs["cache_dir"])
-a = truncate_and_normalize(np.load(zs_cache / f"audio_{_key(meta['filename'].tolist())}.npy"), 768)
-t = truncate_and_normalize(np.load(zs_cache / f"text_{_key(texts)}.npy"), 768)
-preds["EmbeddingGemma2 zero-shot"] = (a @ t.T).argmax(axis=1)
+for label, zs_path in e["zeroshot_configs"].items():
+    a, t = load_zeroshot_embeddings(load_yaml(zs_path), meta["filename"].tolist(), classes)
+    preds[f"{label} zero-shot"] = (a @ t.T).argmax(axis=1)
 
 rt = load_yaml(e["retrieval_config"])
 for label in e["knn_models"]:
@@ -140,10 +132,15 @@ for name, p in preds.items():
     fig.savefig(out / f"esc50_cm_{fname}.png", dpi=130)
     plt.close(fig)
 
-# 大分類の混同行列（small multiples）
+# 大分類の混同行列（small multiples, 3 列で折り返し）
 names = list(preds)
 G = len(e["category_groups"])
-fig, axes = plt.subplots(1, len(names), figsize=(4.6 * len(names), 6.0))
+ncol = 3
+nrow = -(-len(names) // ncol)
+fig, axes = plt.subplots(nrow, ncol, figsize=(4.6 * ncol, 6.0 * nrow), squeeze=False)
+for ax in axes.ravel()[len(names):]:
+    ax.axis("off")
+axes = axes.ravel()[: len(names)]
 rows = []
 for ax, name in zip(axes, names):
     g = group_confusion(confusion_matrix(y, preds[name], n), groups, G)
@@ -154,11 +151,12 @@ for ax, name in zip(axes, names):
             rows.append({"condition": name, "true": e["category_groups"][i], "pred": e["category_groups"][j],
                          "count": int(g[i, j])})
     ax.set_xticks(range(G), e["category_groups"], rotation=45, ha="right")
-    ax.set_yticks(range(G), e["category_groups"] if ax is axes[0] else [""] * G)
+    ax.set_yticks(range(G), e["category_groups"] if list(axes).index(ax) % ncol == 0 else [""] * G)
     ax.set_title(name, fontsize=10, loc="left", pad=34)
     ax.set_xlabel("Predicted category")
     top.set_xlabel("Predicted total", fontsize=7)
-axes[0].set_ylabel("True category")
+for i in range(0, len(names), ncol):
+    axes[i].set_ylabel("True category")
 fig.suptitle(f"ESC-50 confusion by major category: clip counts ({per_group} clips per category; "
              "row totals on the right, predicted totals on top)", x=0.01, ha="left", fontsize=11)
 fig.tight_layout(rect=(0, 0, 1, 0.92))
@@ -166,8 +164,8 @@ fig.savefig(out / "esc50_category_cm.png", dpi=130)
 plt.close(fig)
 pd.DataFrame(rows).to_csv(out / "esc50_category_cm.csv", index=False)
 
-# クラス別再現率の比較（EmbeddingGemma2 ゼロショット / 同 k-NN / BEATs iter3 k-NN）
-compare = names[:3]
+# クラス別再現率の比較（設定の recall_compare、最大 3 系列）
+compare = e["recall_compare"]
 recall = pd.DataFrame({nm: np.diag(row_normalize(confusion_matrix(y, preds[nm], n))) for nm in compare}, index=classes)
 recall = recall.sort_values(compare[0])
 recall.to_csv(out / "esc50_per_class_recall.csv")

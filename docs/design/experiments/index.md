@@ -5,6 +5,8 @@
 - [esc50_retrieval.md](esc50_retrieval.md): Step 1b ESC-50 音声⇔音声検索によるモデル比較
 - [dcase_anomaly.md](dcase_anomaly.md): Step 2 DCASE 異常検知
 
+CLAP 用の実験設定は `configs/experiment/clap/`（ゼロショット・補正比較・DCASE。ESC-50 検索は `esc50_retrieval.yaml` の `models` に含む）。
+
 ## 実行方法
 ```bash
 docker compose build

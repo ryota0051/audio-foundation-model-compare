@@ -1,0 +1,12 @@
+# ESC-50 ゼロショット（CLAP larger_clap_general）
+base: configs/experiment/esc50_zeroshot.yaml
+model_config: configs/model/clap_larger_general.yaml
+output_dir: outputs/results/clap/esc50_zeroshot
+cache_dir: outputs/cache/clap/esc50_zeroshot
+# MRL 学習されていないので全次元のみ
+dims: [512]
+# EmbeddingGemma 用のタスクプレフィックスは使わない
+prefixes:
+  _replace: true
+  none: "{text}"
+# テンプレートは基本設定（label / sound_of / natural / clap_label / clap_natural）を継承

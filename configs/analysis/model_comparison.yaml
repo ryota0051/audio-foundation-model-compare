@@ -8,9 +8,11 @@ models:
   BEATs_iter3_L6: outputs/results/dcase_beats/beats_iter3_l6
   BEATs_iter3+AS2M: outputs/results/dcase_beats/beats_iter3_plus_as2m
   BEATs_iter3+AS2M_FT: outputs/results/dcase_beats/beats_iter3_plus_as2m_ft
+  CLAP: outputs/results/clap/dcase_anomaly
 # 全モデル共通の固定条件（条件選択の有利不利を除いた比較用）
 fixed_condition:
   mode: whole
-  dim: 768
+  # full = 各モデルの全次元（EmbeddingGemma2/BEATs 768, CLAP 512）
+  dim: full
   pooling: single
   scorer: mahalanobis

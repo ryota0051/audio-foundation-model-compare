@@ -26,6 +26,11 @@ def test_deep_merge_nested():
     }
 
 
+def test_deep_merge_replace_marker():
+    out = deep_merge({"a": {"x": 1, "y": 2}}, {"a": {"_replace": True, "z": 3}})
+    assert out == {"a": {"z": 3}}
+
+
 def test_load_yaml_base_inheritance(tmp_path: Path):
     base = tmp_path / "base.yaml"
     base.write_text("x: 1\nnested:\n  a: 1\n  b: 2\n", encoding="utf-8")

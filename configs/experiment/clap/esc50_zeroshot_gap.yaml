@@ -1,0 +1,6 @@
+# ESC-50 ゼロショットのギャップ補正（CLAP）。埋め込みは clap/esc50_zeroshot と共有
+base: configs/experiment/clap/esc50_zeroshot.yaml
+output_dir: outputs/results/clap/esc50_zeroshot_gap
+gap_correction:
+  methods: [none, center_text, center_both_oof, center_both_all, column_zscore, csls]
+  csls_k: 10
