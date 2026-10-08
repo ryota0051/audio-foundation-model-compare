@@ -1,0 +1,73 @@
+model_config: configs/model/embeddinggemma2.yaml
+dataset_config: configs/dataset/esc50.yaml
+output_dir: outputs/smoke/esc50
+cache_dir: outputs/smoke_cache/esc50
+dims: [768, 512, 256, 128]
+topk: [1, 5]
+confusion_top_n: 20
+# smoke 実行時は fold を絞る（null = 全 fold）
+folds: [1]
+
+# テキスト側のタスクプレフィックス（音声側には付けない）
+prefixes:
+  none: "{text}"
+  classification: "task: classification | query: {text}"
+  search: "task: search result | query: {text}"
+
+# ラベル表現。{label} はクラス名の "_" を空白にしたもの、{natural} は下の辞書
+templates:
+  label: "{label}"
+  sound_of: "the sound of {label}"
+  natural: "the sound of {natural}"
+
+natural_labels:
+  dog: a dog barking
+  rooster: a rooster crowing
+  pig: a pig oinking
+  cow: a cow mooing
+  frog: a frog croaking
+  cat: a cat meowing
+  hen: a hen clucking
+  insects: insects buzzing
+  sheep: a sheep bleating
+  crow: a crow cawing
+  rain: rain falling
+  sea_waves: sea waves crashing
+  crackling_fire: a fire crackling
+  crickets: crickets chirping
+  chirping_birds: birds chirping
+  water_drops: water dripping
+  wind: wind blowing
+  pouring_water: water being poured
+  toilet_flush: a toilet flushing
+  thunderstorm: a thunderstorm
+  crying_baby: a baby crying
+  sneezing: a person sneezing
+  clapping: people clapping
+  breathing: a person breathing
+  coughing: a person coughing
+  footsteps: footsteps walking
+  laughing: a person laughing
+  brushing_teeth: someone brushing their teeth
+  snoring: a person snoring
+  drinking_sipping: someone drinking and sipping
+  door_wood_knock: knocking on a wooden door
+  mouse_click: a computer mouse clicking
+  keyboard_typing: typing on a keyboard
+  door_wood_creaks: a wooden door creaking
+  can_opening: a can being opened
+  washing_machine: a washing machine running
+  vacuum_cleaner: a vacuum cleaner running
+  clock_alarm: an alarm clock ringing
+  clock_tick: a clock ticking
+  glass_breaking: glass breaking
+  helicopter: a helicopter flying
+  chainsaw: a chainsaw cutting
+  siren: a siren wailing
+  car_horn: a car horn honking
+  engine: an engine running
+  train: a train passing
+  church_bells: church bells ringing
+  airplane: an airplane flying overhead
+  fireworks: fireworks exploding
+  hand_saw: a hand saw cutting wood
