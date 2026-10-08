@@ -1,0 +1,20 @@
+# 埋め込みの UMAP 可視化（scripts/analysis/umap_figures.py）
+base: configs/analysis/confusion.yaml
+output_dir: outputs/analysis/umap
+
+umap:
+  n_neighbors: 15
+  min_dist: 0.1
+  metric: cosine
+  random_state: 0
+
+esc50_umap:
+  # 大分類ごとの small multiples を描くモデル（esc50_retrieval.yaml の models のキー）
+  models: [EmbeddingGemma2, BEATs_iter3, BEATs_iter3+AS2M_FT]
+
+dcase_umap:
+  # 機種ごとに train + test の正常（source / target）と異常を描く
+  models:
+    EmbeddingGemma2: outputs/cache/dcase
+    BEATs_iter3: outputs/cache/dcase_beats/beats_iter3
+  dim: 768

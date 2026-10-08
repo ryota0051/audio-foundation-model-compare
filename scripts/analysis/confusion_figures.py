@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap, to_rgb
 
+from egaudio.analysis.loaders import load_dcase_whole, load_esc50_retrieval_embeddings
 from egaudio.anomaly.scorers import KnnCosineScorer
 from egaudio.config.loader import load_yaml
 from egaudio.data.dcase import list_clips
@@ -106,9 +107,7 @@ preds["EmbeddingGemma2 zero-shot"] = (a @ t.T).argmax(axis=1)
 
 rt = load_yaml(e["retrieval_config"])
 for label in e["knn_models"]:
-    model_cfg_path = Path(rt["models"][label])
-    emb = np.load(Path(rt["cache_dir"]) / model_cfg_path.stem / f"audio_n{len(meta)}.npy")
-    emb = truncate_and_normalize(emb, load_yaml(model_cfg_path)["full_dim"])
+    emb = load_esc50_retrieval_embeddings(rt, label, len(meta))
     p = np.empty_like(y)
     for f in np.unique(folds):
         te = folds == f
@@ -203,9 +202,7 @@ for r, m in enumerate(machines):
     test = list_clips(dds["root"], m, "test")
     y_t, dom = test["is_anomaly"].to_numpy(), test["domain"].to_numpy()
     for mi, label in enumerate(models):
-        cache = Path(d["models"][label]) / m
-        tr = truncate_and_normalize(np.load(cache / "train_whole.npy"), d["dim"])
-        te = truncate_and_normalize(np.load(cache / "test_whole.npy"), d["dim"])
+        tr, te = load_dcase_whole(d["models"][label], m, d["dim"])
         scorer = KnnCosineScorer(d["knn_k"]).fit(tr)
         thr = threshold_from_normal(scorer.score_loo(), d["threshold_quantile"])
         s = scorer.score(te)

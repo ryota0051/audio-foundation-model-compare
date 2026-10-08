@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=8", "matplotlib"]
+dev = ["pytest>=8", "matplotlib", "umap-learn"]
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu128" }
