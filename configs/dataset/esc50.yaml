@@ -1,0 +1,6 @@
+root: data/ESC-50
+audio_dir: data/ESC-50/audio
+meta_csv: data/ESC-50/meta/esc50.csv
+target_sr: 16000
+# null = 全チャンネル平均でモノラル化
+channel: null

@@ -1,0 +1,13 @@
+# EmbeddingGemma 2（テキスト＋音声のみロード）
+model_id: google/embeddinggemma-2
+# bfloat16 / float32 のみ許可（float16 は NaN・劣化のため禁止）
+dtype: bfloat16
+device: cuda
+# ビジョンエンコーダを外す
+config_kwargs:
+  vision_config: null
+sample_rate: 16000
+batch_size:
+  text: 64
+  audio: 8
+full_dim: 768
