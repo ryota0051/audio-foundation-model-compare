@@ -1,0 +1,10 @@
+# ESC-50 ゼロショットのモダリティギャップ・ハブ化補正の比較
+# プレフィックス・テンプレート・次元・キャッシュは Step 1 と共通（埋め込みを再利用）
+base: configs/experiment/esc50_zeroshot.yaml
+output_dir: outputs/results/esc50_zeroshot_gap
+
+gap_correction:
+  # egaudio.zeroshot.gap.METHODS から選ぶ（説明は同モジュールの docstring）
+  methods: [none, center_text, center_both_oof, center_both_all, column_zscore, csls]
+  # CSLS の近傍数
+  csls_k: 10
