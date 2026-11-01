@@ -18,8 +18,11 @@ def load_esc50_retrieval_embeddings(retrieval_cfg: dict, label: str, n_clips: in
     return truncate_and_normalize(np.load(path), load_yaml(model_cfg_path)["full_dim"])
 
 
-def load_zeroshot_embeddings(zeroshot_cfg: dict, filenames: list[str], classes: list[str]) -> tuple[np.ndarray, np.ndarray]:
-    """Step1 ゼロショットの最良条件（best.json）の (音声, クラステキスト) 埋め込みを全次元・L2 正規化で返す。"""
+def load_zeroshot_embeddings(
+    zeroshot_cfg: dict, filenames: list[str], classes: list[str], dim: int | None = None
+) -> tuple[np.ndarray, np.ndarray]:
+    """Step1 ゼロショットの最良条件（best.json のプレフィックス・テンプレート）の (音声, クラステキスト) 埋め込みを
+    dim 次元（None = 全次元）・L2 正規化で返す。"""
     import json
 
     from egaudio.experiments.esc50_zeroshot import _key
@@ -29,7 +32,7 @@ def load_zeroshot_embeddings(zeroshot_cfg: dict, filenames: list[str], classes: 
     texts = build_texts(classes, zeroshot_cfg["templates"][best["template"]],
                         zeroshot_cfg["prefixes"][best["prefix"]], zeroshot_cfg["natural_labels"])
     cache = Path(zeroshot_cfg["cache_dir"])
-    dim = load_yaml(zeroshot_cfg["model_config"])["full_dim"]
+    dim = dim or load_yaml(zeroshot_cfg["model_config"])["full_dim"]
     audio = truncate_and_normalize(np.load(cache / f"audio_{_key(filenames)}.npy"), dim)
     text = truncate_and_normalize(np.load(cache / f"text_{_key(texts)}.npy"), dim)
     return audio, text

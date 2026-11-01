@@ -20,6 +20,7 @@ docker compose run --rm app uv run python scripts/analysis/confusion_figures.py
 出力（`outputs/analysis/confusion/`、各 PNG に同名 CSV）:
 - `esc50_cm_<条件>.png`: 50x50 の件数。1 本以上のセルのみ数字を表示し、行合計を右軸・予測合計を上軸に表示。予測合計がクラスサイズの 2 倍以上（=予測の集中）なら太字。ゼロショットは Step1 の best.json の条件、k-NN は 5 fold の out-of-fold 予測
 - `esc50_category_cm.png`: 5 大分類に集約した件数（行合計・予測合計つき）
+- `esc50_table_category_cm.png`: README の ESC-50 結果表と同じ並び（行 = モデル、列 = ゼロショット / k-NN@1 / 線形プローブ）の大分類混同行列。表の「-」は空欄。各パネルに 50 クラスの正解率を小数第 2 位まで表示（表の値と照合できるように）。並びとセルの条件は `esc50.table_figure` で指定（ゼロショットは best.json のプレフィックス・テンプレートを指定次元で使い、補正は `egaudio.zeroshot.gap` の method。EmbeddingGemma 2 は表に合わせ 512 次元）。k-NN と線形プローブは 5 fold の out-of-fold 予測
 - `esc50_per_class_recall.png`: クラス別再現率（ゼロショット / EmbeddingGemma2 k-NN / BEATs iter3 k-NN）
 - `dcase_confusion.png`, `dcase_binary_report.csv`: 機種 × ドメインの 2x2 件数（whole / single / kNN k=1 / 768）
 
