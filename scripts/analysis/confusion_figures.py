@@ -30,7 +30,8 @@ from egaudio.evaluation.confusion import (
     row_normalize,
     threshold_from_normal,
 )
-from egaudio.retrieval.knn import knn_predict
+from egaudio.retrieval.knn import knn_predict, linear_probe_predict, out_of_fold_predict
+from egaudio.zeroshot.gap import corrected_similarity
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", default="configs/analysis/confusion.yaml")
@@ -98,13 +99,15 @@ for label, zs_path in e["zeroshot_configs"].items():
     preds[f"{label} zero-shot"] = (a @ t.T).argmax(axis=1)
 
 rt = load_yaml(e["retrieval_config"])
-for label in e["knn_models"]:
+
+
+def knn_oof(label: str) -> np.ndarray:
     emb = load_esc50_retrieval_embeddings(rt, label, len(meta))
-    p = np.empty_like(y)
-    for f in np.unique(folds):
-        te = folds == f
-        p[te] = knn_predict(emb[~te], y[~te], emb[te], e["knn_k"])
-    preds[f"{label} k-NN@{e['knn_k']}"] = p
+    return out_of_fold_predict(lambda db, db_y, q: knn_predict(db, db_y, q, e["knn_k"]), emb, y, folds)
+
+
+for label in e["knn_models"]:
+    preds[f"{label} k-NN@{e['knn_k']}"] = knn_oof(label)
 
 boundaries = np.arange(1, len(e["category_groups"])) * (n // len(e["category_groups"])) - 0.5
 for name, p in preds.items():
@@ -188,6 +191,61 @@ ax.legend(loc="lower left", bbox_to_anchor=(0, 1.0), ncol=3, frameon=False, font
 fig.tight_layout()
 fig.savefig(out / "esc50_per_class_recall.png", dpi=130)
 plt.close(fig)
+
+# README の結果表と同じ並びの大分類混同行列（行 = モデル, 列 = 評価方法, 表の "-" は空欄）
+tf = e["table_figure"]
+cols = list(tf["column_titles"])
+csls_k = load_yaml(tf["gap_config"])["gap_correction"]["csls_k"]
+lp = rt["linear_probe"]
+
+
+def table_cell_pred(kind: str, spec) -> np.ndarray:
+    if kind == "zeroshot":
+        a, t = load_zeroshot_embeddings(load_yaml(spec["config"]), meta["filename"].tolist(), classes, spec["dim"])
+        return corrected_similarity(spec["correction"], a, t, folds, {"csls_k": csls_k}).argmax(axis=1)
+    if kind == "knn":
+        return knn_oof(spec)
+    emb = load_esc50_retrieval_embeddings(rt, spec, len(meta))
+    return out_of_fold_predict(lambda db, db_y, q: linear_probe_predict(db, db_y, q, lp["c"], lp["max_iter"]),
+                               emb, y, folds)
+
+
+fig, axes = plt.subplots(len(tf["rows"]), len(cols), figsize=(4.6 * len(cols), 5.0 * len(tf["rows"])), squeeze=False)
+table_rows = []
+for r, row in enumerate(tf["rows"]):
+    first = True
+    for c, kind in enumerate(cols):
+        ax = axes[r, c]
+        if kind not in row:
+            ax.axis("off")
+            ax.text(0.5, 0.5, f"{row['label']}\n{tf['column_titles'][kind]}: —", ha="center", va="center",
+                    color=style["muted"], fontsize=9, transform=ax.transAxes)
+            continue
+        p = table_cell_pred(kind, row[kind])
+        acc = float(np.mean(p == y))
+        g = group_confusion(confusion_matrix(y, p, n), groups, G)
+        for i in range(G):
+            for j in range(G):
+                table_rows.append({"model": row["label"], "method": tf["column_titles"][kind], "accuracy": acc,
+                             "true": e["category_groups"][i], "pred": e["category_groups"][j], "count": int(g[i, j])})
+        _, top, _ = draw_counts(ax, g, vmax=int(g.sum(axis=1).max()), fontsize=8)
+        ax.set_xticks(range(G), e["category_groups"], rotation=45, ha="right")
+        ax.set_yticks(range(G), e["category_groups"] if first else [""] * G)
+        if first:
+            ax.set_ylabel("True category")
+            first = False
+        ax.set_title(f"{row['label']}\n{tf['column_titles'][kind]}   accuracy {acc:.2%} (50 classes)",
+                     fontsize=10, loc="left", pad=34)
+        ax.set_xlabel("Predicted category")
+        top.set_xlabel("Predicted total", fontsize=7)
+fig.suptitle("ESC-50 confusion by major category, laid out like the README results table "
+             f"(rows = models, columns = methods; {int(g.sum(axis=1).max())} clips per category)\n"
+             "zero-shot: all 2,000 clips · k-NN / linear probe: out-of-fold predictions of the official 5 folds · "
+             "accuracy is the 50-class accuracy, not the 5-category one", x=0.01, ha="left", fontsize=11)
+fig.tight_layout(rect=(0, 0, 1, 0.965))
+fig.savefig(out / "esc50_table_category_cm.png", dpi=130)
+plt.close(fig)
+pd.DataFrame(table_rows).to_csv(out / "esc50_table_category_cm.csv", index=False)
 
 # ---------------- DCASE ----------------
 d = cfg["dcase"]

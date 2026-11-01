@@ -13,6 +13,33 @@ esc50:
   knn_models: [EmbeddingGemma2, BEATs_iter3, BEATs_iter3+AS2M_FT, CLAP]
   # クラス別再現率の図で比べる条件（散布図の判別可能色は 3 まで）
   recall_compare: [EmbeddingGemma2 zero-shot, CLAP zero-shot, EmbeddingGemma2 k-NN@1]
+  # README の ESC-50 結果表と同じ並び（行 = モデル, 列 = 評価方法）の大分類混同行列（esc50_table_category_cm.png）
+  # 列は zeroshot / knn / linear_probe 固定。行に無いキーのセルは空欄（表の "-"）
+  table_figure:
+    column_titles:
+      zeroshot: zero-shot
+      knn: k-NN@1
+      linear_probe: linear probe
+    # CSLS の近傍数はこの設定の gap_correction.csls_k を使う
+    gap_config: configs/experiment/esc50_zeroshot_gap.yaml
+    rows:
+      - label: EmbeddingGemma 2
+        # best.json のプレフィックス・テンプレートを dim 次元（null = 全次元）で使う。表の値は 512 次元
+        zeroshot: {config: configs/experiment/esc50_zeroshot.yaml, dim: 512, correction: none}
+        knn: EmbeddingGemma2
+        linear_probe: EmbeddingGemma2
+      - label: EmbeddingGemma 2 + CSLS
+        zeroshot: {config: configs/experiment/esc50_zeroshot.yaml, dim: 512, correction: csls}
+      - label: BEATs iter3 (self-supervised only)
+        knn: BEATs_iter3
+        linear_probe: BEATs_iter3
+      - label: BEATs iter3+AS2M FT
+        knn: BEATs_iter3+AS2M_FT
+        linear_probe: BEATs_iter3+AS2M_FT
+      - label: CLAP
+        zeroshot: {config: configs/experiment/clap/esc50_zeroshot.yaml, dim: null, correction: none}
+        knn: CLAP
+        linear_probe: CLAP
   # ESC-50 の大分類の表示名。出典は ESC-50 公式 README の表で、列順に並べる
   # （target 番号が大分類ごとに 10 個ずつ連番なので target // 10 で対応づく。詳細: docs/design/evaluation/confusion.md）
   category_groups:

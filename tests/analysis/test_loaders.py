@@ -53,3 +53,32 @@ def test_load_dcase_whole_full_dim(tmp_path):
     np.save(tmp_path / "fan" / "test_whole.npy", np.ones((3, 8), dtype=np.float32))
     tr, te = load_dcase_whole(tmp_path, "fan", dim=None)
     assert tr.shape == (2, 8) and te.shape == (3, 8)
+
+
+def test_load_zeroshot_embeddings_dim(tmp_path):
+    import json
+
+    from egaudio.analysis.loaders import load_zeroshot_embeddings
+    from egaudio.experiments.esc50_zeroshot import _key
+    from egaudio.zeroshot.prompts import build_texts
+
+    model_cfg = tmp_path / "m.yaml"
+    model_cfg.write_text("full_dim: 8\n", encoding="utf-8")
+    out, cache = tmp_path / "out", tmp_path / "cache"
+    out.mkdir()
+    cache.mkdir()
+    (out / "best.json").write_text(json.dumps({"prefix": "none", "template": "label", "top1": 0.5}), encoding="utf-8")
+    cfg = {"output_dir": str(out), "cache_dir": str(cache), "model_config": str(model_cfg),
+           "templates": {"label": "{label}"}, "prefixes": {"none": "{text}"}, "natural_labels": {}}
+    classes, files = ["dog", "cat"], ["a.wav", "b.wav", "c.wav"]
+    texts = build_texts(classes, "{label}", "{text}", {})
+    rng = np.random.default_rng(0)
+    raw_a, raw_t = rng.standard_normal((3, 8)), rng.standard_normal((2, 8))
+    np.save(cache / f"audio_{_key(files)}.npy", raw_a)
+    np.save(cache / f"text_{_key(texts)}.npy", raw_t)
+
+    a, t = load_zeroshot_embeddings(cfg, files, classes)
+    assert a.shape == (3, 8) and t.shape == (2, 8)
+    a, t = load_zeroshot_embeddings(cfg, files, classes, dim=4)
+    assert a.shape == (3, 4) and t.shape == (2, 4)
+    np.testing.assert_allclose(a, _unit(raw_a[:, :4]), rtol=1e-6)
