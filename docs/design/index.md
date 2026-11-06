@@ -11,3 +11,4 @@
 | [anomaly](anomaly/index.md) | 距離ベース異常スコアとドメイン別プール |
 | [evaluation](evaluation/index.md) | DCASE 公式準拠の AUC / pAUC |
 | [experiments](experiments/index.md) | Step1 / Step2 の実験ランナーと設定ファイル |
+| [playground](playground/index.md) | テキストとマイク音声の類似度をブラウザで試すアプリ |
