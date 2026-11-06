@@ -1,0 +1,25 @@
+# ブラウザで「テキスト ⇔ マイク音声」の類似度を試すアプリの設定
+model_config: configs/model/embeddinggemma2.yaml
+
+server:
+  # コンテナ内では 0.0.0.0 で待ち受け、ホスト側は compose.yaml で 127.0.0.1 にのみ公開
+  host: 0.0.0.0
+  port: 7860
+
+audio:
+  # これより長い録音は先頭から打ち切る
+  max_sec: 30.0
+
+# テキスト側のプレフィックス（音声には付けない）。最初のものが既定値
+text_prefixes:
+  none: "{text}"
+  search: "task: search result | query: {text}"
+  classification: "task: classification | query: {text}"
+
+# 起動時にテキスト欄へ入れておく例文（1 行 1 候補）
+default_texts:
+  - 今日はいい天気ですね
+  - 明日の会議は何時からですか
+  - お腹がすいたので何か食べに行きましょう
+  - 犬が吠えている
+  - 電車が遅れているみたいです

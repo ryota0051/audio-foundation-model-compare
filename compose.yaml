@@ -16,6 +16,9 @@ services:
       - ./outputs:/workspace/outputs
       - ./.hf_cache:/workspace/.hf_cache
       - ./models:/workspace/models:ro
+    # playground アプリ用（`docker compose run --service-ports` のときのみ有効）。ホストの localhost にだけ公開
+    ports:
+      - "127.0.0.1:7860:7860"
     shm_size: "8gb"
     deploy:
       resources:

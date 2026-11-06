@@ -161,6 +161,15 @@ docker compose run --rm app uv run python scripts/experiments/run_dcase_anomaly.
 | 埋め込みの UMAP | `scripts/analysis/umap_figures.py` | `configs/analysis/umap.yaml` |
 | DCASE のマハラノビス距離の分布 | `scripts/analysis/mahalanobis_distribution.py` | `configs/experiment/dcase_anomaly.yaml` |
 
+### 音声とテキストの類似度を試すアプリ
+
+テキスト候補とマイクで録音した音声を入力すると、EmbeddingGemma 2 の埋め込みのコサイン類似度をブラウザ上に表示します（設定: `configs/app/playground.yaml`、仕様: [docs/design/playground](docs/design/playground/index.md)）。
+
+```bash
+docker compose run --rm --service-ports app uv run python scripts/app/run_playground.py
+# → http://localhost:7860 を開く
+```
+
 ## 実験結果
 
 詳しい表と考察は [作業ログ](docs/work_log/20261008.md) にあります。

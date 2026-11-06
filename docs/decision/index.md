@@ -8,3 +8,4 @@
 | [0004](0004-audio-resampling-before-model.md) | モデル投入前に自前で 16kHz 化 | プロセッサはリサンプルしない |
 | [0005](0005-beats-vendoring-and-checkpoints.md) | BEATs の取り込みとチェックポイントの扱い | 公式実装を vendoring、チェックポイントは手動配置 |
 | [0006](0006-clap-comparison.md) | CLAP を比較対象に追加 | larger_clap_general のみ、48kHz、決定的窓分割、ESC-50 重複の注意 |
+| [0007](0007-playground-gradio-app.md) | 発話音声とテキストの近さは Gradio アプリで試す | localhost のみ公開、順位と平均との差で表示、コーパス評価は保留 |
